@@ -17,14 +17,14 @@
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body class="font-sans antialiased bg-gray-50">
+    <body class="font-sans antialiased">
 
         @include('layouts.includes.admin.navigation')
 
         @include('layouts.includes.admin.sidebar')
 
         <div class="p-4 sm:ml-64">
-            <div class="mt-14">
+            <div class="mt-14 bg-gray-50">
                 {{$slot}}
             </div>
         </div>
@@ -33,6 +33,7 @@
 
         @livewireScripts
         <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
+        <script src="https://kit.fontawesome.com/b8fb01188c.js" crossorigin="anonymous"></script>
 
     </body>
 </html>
