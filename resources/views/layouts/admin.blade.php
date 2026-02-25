@@ -15,6 +15,8 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
         <wireui:scripts />
         
         <!-- Styles -->
@@ -34,6 +36,12 @@
         </div>
 
         @stack('modals')
+
+        @if (@session('swal'))
+            <script>
+                Swal.fire(@json(session('swal')));
+            </script>
+        @endif
 
         @livewireScripts
         <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>

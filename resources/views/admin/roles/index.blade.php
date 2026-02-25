@@ -1,0 +1,18 @@
+<x-admin-layout title="Roles" :breadcrumbs="[
+    [
+        'name' => 'Dashboard',
+        'route' => route('admin.dashboard'),
+    ],
+    [
+        'name' => 'Roles',
+    ],
+]">
+    <x-slot name="action">
+        <x-wire-button href="{{ route('admin.roles.create') }}" blue xs>
+            <i class="fa-solid fa-plus"></i>
+            Nuevo
+        </x-wire-button>
+
+    @livewire('admin.datatables.role-table')
+
+</x-admin-layout>
