@@ -43,7 +43,7 @@ class RoleController extends Controller
             'text' => 'El rol ha sido creado correctamente'
         ]);
 
-        return redirect('admin.roles.index')->with('success', 'Role created succesfully');
+        return redirect(route('admin.roles.index'))->with('success', 'Role created succesfully');
     }
 
     /**
@@ -59,22 +59,44 @@ class RoleController extends Controller
      */
     public function edit(Role $role)
     {
-        return view('admin.roles.edit', compact($role));
+        return view('admin.roles.edit', compact('role'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Role $role)
     {
-        //
+        $request->validate([
+            'name' => 'required|unique:roles,name,' . $role->id
+        ]);
+
+        $role->update([
+            'name' => $request->name
+        ]);
+
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => 'Rol actualizado correctamente',
+            'text' => 'El rol ha sido actualizado correctamente'
+        ]);
+
+        return redirect(route('admin.roles.edit', $role));
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Role $role)
     {
-        //
+        $role->delete();
+
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => 'Rol eliminado correctamente',
+            'text' => 'El rol ha sido eliminado correctamente'
+        ]);
+
+        return redirect(route('admin.roles.index'));
     }
 }

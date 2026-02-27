@@ -1,15 +1,26 @@
 <x-admin-layout title="Roles" :breadcrumbs="[
     [
         'name' => 'Dashboard',
-        'route' => route('admin.dashboard'),
+        'href' => route('admin.dashboard'),
     ],
     [
         'name' => 'Roles',
-        'route' => route('admin.roles.index'),
+        'href' => route('admin.roles.index'),
     ],
     [
         'name' => 'Crear',
     ]
 ]">
+
+    <x-wire-card>
+        <form action="{{ route('admin.roles.store') }}" method="POST">
+            @csrf
+            <x-wire-input label="Nombre" name="name" placeholder="Nombre del rol" value="{{old('name')}}">
+            </x-wire-input>
+            <div class="flex justify-end mt-4">
+                <x-wire-button type="submit" blue>Crear</x-wire-button>
+            </div>
+        </form>
+    </x-wire-card>
 
 </x-admin-layout>
