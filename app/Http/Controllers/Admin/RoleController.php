@@ -68,7 +68,7 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name' => 'required|unique:roles,name,' . $role->id
+            'name' => 'required|unique:roles,name,' . $role->id,
         ]);
 
         $role->update([
@@ -89,6 +89,18 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
+        $protectedRoles = ['Admin', 'Doctor', 'Paciente', 'Recepcionista', 'Super administrador'];    
+
+        if (in_array($role->name, $protectedRoles)) {
+            session()->flash('swal', [
+                'icon' => 'error',
+                'title' => 'Error',
+                'text' => 'No puedes eliminar este rol'
+            ]);
+
+            return redirect(route('admin.roles.index'));
+        }
+
         $role->delete();
 
         session()->flash('swal', [
