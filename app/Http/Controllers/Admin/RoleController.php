@@ -34,7 +34,9 @@ class RoleController extends Controller
         ]);
 
         Role::create([
-            'name' => $request->name
+            'name' => $request->name,
+            'guard_name' => 'web',
+            'is_system' => false
         ]);
 
         session()->flash('swal', [
@@ -59,14 +61,27 @@ class RoleController extends Controller
      */
     public function edit(Role $role)
     {
+        if ($role->is_system) {
+            session()->flash('swal', [
+                'icon' => 'error',
+                'title' => 'Acción denegada',
+                'text' => 'No puedes editar un rol reservado por el sistema'
+            ]);
+
+            return redirect(route('admin.roles.index'));
+
         return view('admin.roles.edit', compact('role'));
-    }
+    }}
 
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, Role $role)
     {
+        if ($role->is_system) {
+            return redirect(route('admin.roles.index'));
+        }
+
         $request->validate([
             'name' => 'required|unique:roles,name,' . $role->id,
         ]);
@@ -89,13 +104,11 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        $protectedRoles = ['Admin', 'Doctor', 'Paciente', 'Recepcionista', 'Super administrador'];    
-
-        if (in_array($role->name, $protectedRoles)) {
+        if ($role->is_system) {
             session()->flash('swal', [
                 'icon' => 'error',
-                'title' => 'Error',
-                'text' => 'No puedes eliminar este rol'
+                'title' => 'Acción denegada',
+                'text' => 'No puedes eliminar un rol reservado por el sistema'
             ]);
 
             return redirect(route('admin.roles.index'));
