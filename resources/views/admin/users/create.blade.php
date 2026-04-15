@@ -13,6 +13,7 @@
 ]">
 
     <x-wire-card>
+        <x-validation-errors class="mb-4" />
         <form action="{{ route('admin.users.store') }}" method="POST">
             @csrf
             <div class="space-y-4">
@@ -25,11 +26,11 @@
                 </x-wire-input>
                 <x-wire-input label="Número de ID" name="id_number" placeholder="Número de identificación" autocomplete="off" inputmode="numeric" required :value="old('id_number')">
                 </x-wire-input>
-                <x-wire-input label="Teléfono" name="phone" placeholder="Número de teléfono" autocomplete="new-phone" required :value="old('phone')">
+                <x-wire-input label="Teléfono" name="phone" placeholder="Número de teléfono" autocomplete="new-phone" inputmode="numeric" required :value="old('phone')">
+                </x-wire-input>
+                <x-wire-input label="Email" name="email" placeholder="Email" :value="old('email')">
                 </x-wire-input>
                 </div>
-            <x-wire-input label="Email" name="email" placeholder="Email" :value="old('email')">
-            </x-wire-input>
             <x-wire-input label="Dirección" name="address" placeholder="Ej. Calle 90 293" required autocomplete="street-address" :value="old('address')">
             </x-wire-input>
             <div class ="space-y-1">
