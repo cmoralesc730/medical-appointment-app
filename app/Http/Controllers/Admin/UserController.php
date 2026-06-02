@@ -85,7 +85,51 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+        $data = $request->validate([
+            'name'      => 'required|string|max:255',
+            'email'     => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'password'  => 'nullable|string|min:8|confirmed',
+            'id_number' => 'required|string|min:5|max:20|regex:/^[A-Za-z0-9]+$/|unique:users,id_number,' . $user->id,
+            'phone'     => 'required|string|digits_between:7,15',
+            'address'   => 'required|string|max:255',
+            'role_id'   => 'required|exists:roles,id',
+        ]);
+
+        $updateData = [
+            'name'      => $data['name'],
+            'email'     => $data['email'],
+            'id_number' => $data['id_number'],
+            'phone'     => $data['phone'],
+            'address'   => $data['address'],
+        ];
+
+        if (!empty($data['password'])) {
+            $updateData['password'] = $data['password'];
+        }
+
+        $user->update($updateData);
+        $user->roles()->sync([$data['role_id']]);
+        $user->refresh();
+
+        session()->flash('swal', [
+            'icon'  => 'success',
+            'title' => 'Usuario actualizado correctamente',
+            'text'  => 'El usuario ha sido actualizado correctamente',
+        ]);
+
+        if ($user->hasRole('Paciente')) {
+            $user->doctor()->delete();
+            $patient = $user->patient()->firstOrCreate([]);
+            return redirect()->route('admin.patients.edit', $patient);
+        }
+
+        if ($user->hasRole('Doctor')) {
+            $user->patient()->delete();
+            $doctor = $user->doctor()->firstOrCreate([]);
+            return redirect()->route('admin.doctors.edit', $doctor);
+        }
+
+        return redirect()->route('admin.users.index');
     }
 
     /**
