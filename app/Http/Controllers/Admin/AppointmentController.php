@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreAppointmentRequest;
+use App\Http\Requests\Admin\UpdateAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Patient;
-use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class AppointmentController extends Controller
 {
@@ -17,22 +19,17 @@ class AppointmentController extends Controller
 
     public function create()
     {
-        $patients = Patient::with('user')->get();
-        $doctors = Doctor::with('user')->get();
+        $patients = Patient::with('user:id,name')->get(['id', 'user_id']);
+        $doctors = Doctor::with('user:id,name')->get(['id', 'user_id']);
 
         return view('admin.appointments.create', compact('patients', 'doctors'));
     }
 
-    public function store(Request $request)
+    public function store(StoreAppointmentRequest $request)
     {
-        $data = $request->validate([
-            'patient_id' => 'required|exists:patients,id',
-            'doctor_id' => 'required|exists:doctors,id',
-            'date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'reason' => 'nullable|string|max:1000',
-        ]);
+        $data = $request->validated();
+        $data['duration'] = $this->calculateDuration($data['start_time'], $data['end_time']);
+        $data['status'] = Appointment::STATUS_SCHEDULED;
 
         Appointment::create($data);
 
@@ -41,23 +38,26 @@ class AppointmentController extends Controller
 
     public function edit(Appointment $appointment)
     {
-        $patients = Patient::with('user')->get();
-        $doctors = Doctor::with('user')->get();
+        if (in_array($appointment->status, [Appointment::STATUS_COMPLETED, Appointment::STATUS_CANCELLED])) {
+            return redirect()->route('admin.appointments.index')
+                ->with('error', 'No se puede editar una cita que ya está completada o cancelada.');
+        }
+
+        $patients = Patient::with('user:id,name')->get(['id', 'user_id']);
+        $doctors = Doctor::with('user:id,name')->get(['id', 'user_id']);
 
         return view('admin.appointments.edit', compact('appointment', 'patients', 'doctors'));
     }
 
-    public function update(Request $request, Appointment $appointment)
+    public function update(UpdateAppointmentRequest $request, Appointment $appointment)
     {
-        $data = $request->validate([
-            'patient_id' => 'required|exists:patients,id',
-            'doctor_id' => 'required|exists:doctors,id',
-            'date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'reason' => 'nullable|string|max:1000',
-            'status' => 'required|integer|in:' . implode(',', array_keys(Appointment::$statuses)),
-        ]);
+        if (in_array($appointment->status, [Appointment::STATUS_COMPLETED, Appointment::STATUS_CANCELLED])) {
+            return redirect()->route('admin.appointments.index')
+                ->with('error', 'No se puede editar una cita que ya está completada o cancelada.');
+        }
+
+        $data = $request->validated();
+        $data['duration'] = $this->calculateDuration($data['start_time'], $data['end_time']);
 
         $appointment->update($data);
 
@@ -73,8 +73,23 @@ class AppointmentController extends Controller
 
     public function consultation(Appointment $appointment)
     {
+        if ($appointment->status === Appointment::STATUS_CANCELLED) {
+            return redirect()->route('admin.appointments.index')
+                ->with('error', 'No se puede registrar una consulta para una cita cancelada.');
+        }
+
+        if ($appointment->consultation()->exists()) {
+            return redirect()->route('admin.appointments.index')
+                ->with('error', 'Esta cita ya tiene una consulta registrada.');
+        }
+
         $appointment->load(['patient.user', 'doctor.user']);
 
         return view('admin.appointments.consultation', compact('appointment'));
+    }
+
+    private function calculateDuration(string $startTime, string $endTime): int
+    {
+        return (int) Carbon::parse($startTime)->diffInMinutes(Carbon::parse($endTime));
     }
 }

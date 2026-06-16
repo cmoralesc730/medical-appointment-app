@@ -9,7 +9,7 @@
         </svg>
                 </button>
                 <a href="/" class="flex ms-2 md:me-24">
-                <img src="images/healthify-logo.png" class="h-6 me-3" alt="Healthify Logo"/>
+                <img src="{{ asset('images/healthify-logo.png') }}" class="h-6 me-3" alt="Healthify Logo"/>
                 <span class="self-center text-lg font-semibold whitespace-nowrap dark:text-white">Healthify</span>
                 </a>
             </div>

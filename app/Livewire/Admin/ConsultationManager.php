@@ -51,11 +51,11 @@ class ConsultationManager extends Component
         }
     }
 
-    #[Computed]
+    #[Computed(cache: true)]
     public function previousConsultations()
     {
         return Consultation::where('patient_id', $this->appointment->patient_id)
-            ->with('doctor.user')
+            ->with('doctor.user:id,name')
             ->latest()
             ->get();
     }
@@ -81,6 +81,24 @@ class ConsultationManager extends Component
 
     public function save()
     {
+        if ($this->appointment->status === Appointment::STATUS_CANCELLED) {
+            session()->flash('swal', [
+                'icon'  => 'error',
+                'title' => 'Cita cancelada',
+                'text'  => 'No se puede registrar una consulta para una cita cancelada.',
+            ]);
+            return redirect()->route('admin.appointments.index');
+        }
+
+        if ($this->appointment->consultation()->exists()) {
+            session()->flash('swal', [
+                'icon'  => 'error',
+                'title' => 'Consulta duplicada',
+                'text'  => 'Esta cita ya tiene una consulta registrada.',
+            ]);
+            return redirect()->route('admin.appointments.index');
+        }
+
         $this->validate();
 
         $consultation = Consultation::create([
