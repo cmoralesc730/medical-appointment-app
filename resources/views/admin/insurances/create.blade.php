@@ -15,23 +15,6 @@
     <form action="{{ route('admin.insurances.store') }}" method="POST" novalidate>
     @csrf
 
-    {{-- Resumen de errores de validación --}}
-    @if ($errors->any())
-        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm">
-            <div class="flex items-start gap-3">
-                <i class="fa-solid fa-circle-exclamation text-red-500 text-xl mt-0.5"></i>
-                <div>
-                    <p class="font-semibold text-red-800 mb-1">Por favor corrige los siguientes errores:</p>
-                    <ul class="list-disc list-inside text-sm text-red-700 space-y-0.5">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-        </div>
-    @endif
-
     {{-- Encabezado de tarjeta --}}
     <x-wire-card class="mb-6">
         <div class="lg:flex lg:justify-between lg:items-center">
