@@ -21,7 +21,8 @@ class StoreAppointmentRequest extends FormRequest
             'date'       => ['required', 'date', 'after_or_equal:today'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time'   => ['required', 'date_format:H:i', 'after:start_time'],
-            'reason'     => ['nullable', 'string', 'max:1000'],
+            'reason'             => ['nullable', 'string', 'max:1000'],
+            'notification_phone' => ['nullable', 'string', 'regex:/^\+?[1-9]\d{7,14}$/'],
         ];
     }
 
@@ -64,7 +65,8 @@ class StoreAppointmentRequest extends FormRequest
             'end_time.required'   => 'La hora de fin es obligatoria.',
             'end_time.date_format' => 'La hora de fin no tiene un formato válido.',
             'end_time.after'      => 'La hora de fin debe ser posterior a la hora de inicio.',
-            'reason.max'          => 'El motivo no puede superar los 1000 caracteres.',
+            'reason.max'                  => 'El motivo no puede superar los 1000 caracteres.',
+            'notification_phone.regex'    => 'El número de WhatsApp debe tener formato internacional (ej: 5216641234567).',
         ];
     }
 
@@ -76,7 +78,8 @@ class StoreAppointmentRequest extends FormRequest
             'date'       => 'fecha',
             'start_time' => 'hora de inicio',
             'end_time'   => 'hora de fin',
-            'reason'     => 'motivo',
+            'reason'             => 'motivo',
+            'notification_phone' => 'número de WhatsApp',
         ];
     }
 }

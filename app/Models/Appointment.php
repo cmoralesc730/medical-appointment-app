@@ -27,6 +27,7 @@ class Appointment extends Model
         'duration',
         'reason',
         'status',
+        'notification_phone',
     ];
 
     public function patient()

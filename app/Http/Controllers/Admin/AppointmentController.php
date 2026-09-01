@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Patient;
+use App\Services\WhatsAppService;
 use Carbon\Carbon;
 
 class AppointmentController extends Controller
@@ -31,9 +32,43 @@ class AppointmentController extends Controller
         $data['duration'] = $this->calculateDuration($data['start_time'], $data['end_time']);
         $data['status'] = Appointment::STATUS_SCHEDULED;
 
-        Appointment::create($data);
+        $appointment = Appointment::create($data);
+        $appointment->load(['patient.user', 'doctor.user']);
 
-        return redirect()->route('admin.appointments.index')->with('success', 'Cita creada correctamente');
+        $phone = $appointment->notification_phone ?? null;
+
+        if ($phone) {
+            try {
+                $fecha    = Carbon::parse($appointment->date)->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY');
+                $inicio   = Carbon::parse($appointment->start_time)->format('h:i A');
+                $fin      = Carbon::parse($appointment->end_time)->format('h:i A');
+                $duracion = $appointment->duration;
+                $motivo   = $appointment->reason ? "📋 *Motivo:* {$appointment->reason}\n" : '';
+
+                $mensaje = "✅ *Cita Confirmada - Healthify*\n\n"
+                    . "Hola, *{$appointment->patient->user->name}*.\n"
+                    . "Tu cita médica ha sido registrada. Aquí tienes el resumen:\n\n"
+                    . "👨‍⚕️ *Doctor:* {$appointment->doctor->user->name}\n"
+                    . "📅 *Fecha:* " . ucfirst($fecha) . "\n"
+                    . "⏰ *Hora de inicio:* {$inicio}\n"
+                    . "🔚 *Hora de fin:* {$fin}\n"
+                    . "⏱ *Duración:* {$duracion} minutos\n"
+                    . $motivo
+                    . "\nPor favor llega 10 minutos antes. Si necesitas cancelar o reprogramar, contáctanos con anticipación.";
+
+                app(WhatsAppService::class)->send($phone, $mensaje);
+
+                return redirect()->route('admin.appointments.index')
+                    ->with('success', 'Cita creada y confirmación enviada por WhatsApp.');
+            } catch (\Throwable $e) {
+                report($e);
+                return redirect()->route('admin.appointments.index')
+                    ->with('success', 'Cita creada correctamente.')
+                    ->with('warning', 'No se pudo enviar el WhatsApp: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('admin.appointments.index')->with('success', 'Cita creada correctamente.');
     }
 
     public function edit(Appointment $appointment)

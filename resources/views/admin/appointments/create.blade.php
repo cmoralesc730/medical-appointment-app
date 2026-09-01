@@ -71,6 +71,20 @@
                 {{ old('reason') }}
             </x-wire-textarea>
         </div>
+        <div class="mt-4 border-t pt-4">
+            <p class="text-sm font-semibold text-gray-600 mb-3">
+                <i class="fa-brands fa-whatsapp text-green-500 me-1"></i>
+                Notificación por WhatsApp
+            </p>
+            <x-wire-input
+                type="tel"
+                label="Número de WhatsApp (formato internacional)"
+                name="notification_phone"
+                value="{{ old('notification_phone') }}"
+                placeholder="Ej: 5216641234567"
+                hint="Sin espacios ni el signo +. Al guardar la cita se enviará una confirmación automática a este número."
+            />
+        </div>
     </x-wire-card>
     </form>
 </x-admin-layout>
